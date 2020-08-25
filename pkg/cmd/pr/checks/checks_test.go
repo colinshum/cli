@@ -125,7 +125,7 @@ func Test_checksRun_tty(t *testing.T) {
 					},
 				},
 			},
-			wantOut: "Some checks were not successful\n1 failing, 1 successful, and 1 pending checks\n\nX  sad tests   24h0m0s  sweet link\n✓  cool tests  24h0m0s  sweet link\n.  slow tests  24h0m0s  sweet link\n",
+			wantOut: "Some checks were not successful\n1 failing, 1 successful, and 1 pending checks\n\nX  sad tests   24h0m0s  sweet link\n✓  cool tests  24h0m0s  sweet link\n-  slow tests  24h0m0s  sweet link\n",
 		},
 		{
 			name: "some pending",
@@ -157,7 +157,7 @@ func Test_checksRun_tty(t *testing.T) {
 					},
 				},
 			},
-			wantOut: "Some checks are still pending\n0 failing, 2 successful, and 1 pending checks\n\n✓  rad tests   24h0m0s  sweet link\n✓  cool tests  24h0m0s  sweet link\n.  slow tests  24h0m0s  sweet link\n",
+			wantOut: "Some checks are still pending\n0 failing, 2 successful, and 1 pending checks\n\n✓  rad tests   24h0m0s  sweet link\n✓  cool tests  24h0m0s  sweet link\n-  slow tests  24h0m0s  sweet link\n",
 		},
 		{
 			name: "all passing",

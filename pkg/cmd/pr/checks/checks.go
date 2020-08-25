@@ -89,7 +89,7 @@ func checksRun(opts *ChecksOptions) error {
 		var mark string
 		switch cr.Status {
 		case "pending":
-			mark = utils.YellowDot()
+			mark = utils.YellowDash()
 		case "pass":
 			mark = utils.GreenCheck()
 		case "fail":
