@@ -9,10 +9,12 @@ import (
 
 // repoCreateInput represents input parameters for repoCreate
 type repoCreateInput struct {
-	Name        string `json:"name"`
-	Visibility  string `json:"visibility"`
-	HomepageURL string `json:"homepageUrl,omitempty"`
-	Description string `json:"description,omitempty"`
+	Name         string `json:"name"`
+	Visibility   string `json:"visibility"`
+	HomepageURL  string `json:"homepageUrl,omitempty"`
+	Description  string `json:"description,omitempty"`
+
+	repositoryID string `json:"repositoryId,omitempty`
 
 	OwnerID string `json:"ownerId,omitempty"`
 	TeamID  string `json:"teamId,omitempty"`
@@ -21,52 +23,98 @@ type repoCreateInput struct {
 	HasWikiEnabled   bool `json:"hasWikiEnabled"`
 }
 
+type repoTemplateInput struct {
+	Name         string `json:"name"`
+	Visibility   string `json:"visibility"`
+	OwnerID 		 string `json:"ownerId,omitempty"`
+
+	repositoryID string `json:"repositoryId,omitempty`
+}
+
 // repoCreate creates a new GitHub repository
 func repoCreate(client *http.Client, hostname string, input repoCreateInput) (*api.Repository, error) {
 	apiClient := api.NewClientFromHTTP(client)
 
-	var response struct {
-		CreateRepository struct {
-			Repository api.Repository
-		}
-	}
-
-	if input.TeamID != "" {
-		orgID, teamID, err := resolveOrganizationTeam(apiClient, hostname, input.OwnerID, input.TeamID)
-		if err != nil {
-			return nil, err
-		}
-		input.TeamID = teamID
-		input.OwnerID = orgID
-	} else if input.OwnerID != "" {
-		orgID, err := resolveOrganization(apiClient, hostname, input.OwnerID)
-		if err != nil {
-			return nil, err
-		}
-		input.OwnerID = orgID
-	}
-
-	variables := map[string]interface{}{
-		"input": input,
-	}
-
-	err := apiClient.GraphQL(hostname, `
-	mutation RepositoryCreate($input: CreateRepositoryInput!) {
-		createRepository(input: $input) {
-			repository {
-				id
-				name
-				owner { login }
-				url
+	if input.repositoryID != "" {
+		var response struct {
+			CloneTemplateRepository struct {
+				Repository api.Repository
 			}
 		}
-	}
-	`, variables, &response)
-	if err != nil {
-		return nil, err
-	}
 
-	return api.InitRepoHostname(&response.CreateRepository.Repository, hostname), nil
+		templateInput := repoTemplateInput {
+			Name: input.Name,
+			Visibility: input.Visibility,
+			OwnerID: input.OwnerID,
+			repositoryID: input.repositoryID,
+		}
+
+
+		variables := map[string]interface{}{
+			"input": templateInput,
+		}
+
+		err := apiClient.GraphQL(hostname, `
+		mutation CloneTemplateRepository($input: CloneTemplateRepositoryInput!) {
+			cloneTemplateRepository(input: $input) {
+				repository {
+					id
+					name
+					owner { login }
+					url
+				}
+			}
+		}
+		`, variables, &response)
+		if err != nil {
+			return nil, err
+		}
+
+		return api.InitRepoHostname(&response.CloneTemplateRepository.Repository, hostname), nil
+	} else {
+		var response struct {
+			CreateRepository struct {
+				Repository api.Repository
+			}
+		}
+
+		if input.TeamID != "" {
+			orgID, teamID, err := resolveOrganizationTeam(apiClient, hostname, input.OwnerID, input.TeamID)
+			if err != nil {
+				return nil, err
+			}
+			input.TeamID = teamID
+			input.OwnerID = orgID
+		} else if input.OwnerID != "" {
+			orgID, err := resolveOrganization(apiClient, hostname, input.OwnerID)
+			if err != nil {
+				return nil, err
+			}
+			input.OwnerID = orgID
+		}
+
+		variables := map[string]interface{}{
+			"input": input,
+		}
+
+		err := apiClient.GraphQL(hostname, `
+		mutation RepositoryCreate($input: CreateRepositoryInput!) {
+			createRepository(input: $input) {
+				repository {
+					id
+					name
+					owner { login }
+					url
+				}
+			}
+		}
+		`, variables, &response)
+		if err != nil {
+			return nil, err
+		}
+
+		return api.InitRepoHostname(&response.CreateRepository.Repository, hostname), nil
+	}
 }
 
 // using API v3 here because the equivalent in GraphQL needs `read:org` scope
