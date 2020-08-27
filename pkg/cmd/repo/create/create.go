@@ -206,7 +206,7 @@ func createRun(opts *CreateOptions) error {
 		Visibility:       visibility,
 		OwnerID:          repoToCreate.RepoOwner(),
 		TeamID:           opts.Team,
-		repositoryID: 		opts.Template,
+		RepositoryID:     opts.Template,
 		Description:      opts.Description,
 		HomepageURL:      opts.Homepage,
 		HasIssuesEnabled: opts.EnableIssues,
